@@ -19,6 +19,7 @@ db.connect((error) => {
         //console.log("connected as id" + db.threadId + "\n");
     
     start();  
+    
 });
     
 function start() {
@@ -36,6 +37,7 @@ function start() {
             'Add departments',
             'Add roles',
             'Update employee role',
+            'Delete employee',
             'exit'
         ]
     }
@@ -69,9 +71,13 @@ function start() {
         case 'Update department role':
           roleUpdate();
           break;
+
+        case 'Delete employee':
+          employeeDelete();
+          break;
   
         case "exit":
-          connection.end();
+          db.end();
           break;
         }
       });
@@ -81,7 +87,6 @@ function start() {
 
 function employeeSearch() {
     console.log("Viewing employees\n");
-  
     var query =
       `SELECT e.id, e.first_name, e.last_name, r.title, d.name AS department, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager
     FROM employee e
@@ -94,30 +99,22 @@ function employeeSearch() {
   
     db.query(query, function (err, res) {
       if (err) throw err;
-  
       console.table(res);
       console.log("Employees viewed!\n");
-  
       start();
     });
   }
   
-//View departments
 
-function departmentSearch() {
+// View departments 
 
+function departmentSearch () {
     console.log("Viewing departments\n");
-
     var query = "SELECT * FROM department";
-
         db.query(query, function(err, res) {
             if (err) throw err;
             console.table(res);
             console.log("Department view succeed!\n");
-            console.log(`DEPARTMENTS:`)
-            res.forEach(department => {
-                console.log(`ID: ${department.id} | Name: ${department.name}`)
-            })
             start();
             });
 };
@@ -125,19 +122,12 @@ function departmentSearch() {
 //View Role
 
 function roleSearch() {
-
     console.log("Viewing roles\n");
-
     var query = "SELECT * FROM role";
-
         db.query(query, function(err, res) {
             if (err) throw err;
             console.table(res);
             console.log("Role view succeed!\n");
-            console.log(`ROLES:`)
-            res.forEach(role => {
-                console.log(`ID: ${role.id} | Title: ${role.title} | Salary: ${role.salary} | Department ID: ${role.department_id}`)
-                })
             start();
             });
 };
@@ -146,7 +136,6 @@ function roleSearch() {
 
 function employeeAdd() {
     console.log("Inserting an employee!")
-  
     var query =
       `SELECT r.id, r.title, r.salary 
         FROM role r`
@@ -164,11 +153,8 @@ function employeeAdd() {
       promptInsert(roleChoices);
     });
   }
-
 //Prompt for new employee
-
   function promptInsert(roleChoices) {
-
     inquirer
       .prompt([
         {
@@ -187,11 +173,9 @@ function employeeAdd() {
           message: "What is the employee's role?",
           choices: roleChoices
         },
-       
       ])
       .then(function (answer) {
         console.log(answer);
-  
         var query = `INSERT INTO employee SET ?`
         // when finished prompting, insert a new item into the db with that info
         db.query(query,
@@ -203,30 +187,74 @@ function employeeAdd() {
           },
           function (err, res) {
             if (err) throw err;
-  
             console.table(res);
             console.log(res.insertedRows + "Inserted successfully!\n");
-  
             start();
           });
-       
       });
   }
 
-  //Add department
-  //Add role
+  //Add department ((not working))
 
+function departmentAdd() {
+    inquirer.prompt({
+        type: "input",
+        name: "addDepartment",
+        message: "What is the name of your department?"
+    }).then(function (answer) {
+        db.query('INSERT INTO department SET ?', { department_name: answer.addDepartment }, function (err) {
+            if (err) throw err;
+        });
+        console.log("\n Department added to database... \n");
+        start();
+    });
+}
 
-  
+  //Add role (not working)
 
+  function roleAdd() {
 
-  //Updating employee's role 
+    db.query("SELECT * FROM role", "SELECT * FROM department",function (err, result) {
+        if (err) throw err;
 
-  function roleUpdate() {
-      employeeArray();
-  }
+        inquirer.prompt([
+            {
+                name: "roleTitle",
+                type: "input",
+                message: "Enter the title for this role"
+            },
+            {
+                name: "roleSalary",
+                type: "input",
+                message: "Enter the salary for this role"
+            },
+            {
+                name: "departmentChoice",
+                type: "rawlist",
+                message: "Choose a department associated with this role",
+                choices: function () {
+                    let choiceArray = results[1].map(choice => choice.department_name);
+                    return choiceArray;
+                }
+            }
+        ]).then(function (answer) {
+            db.query(
+                `INSERT INTO role(title, salary, department_id) 
+                VALUES
+                ("${answer.roleTitle}", "${answer.roleSalary}", 
+                (SELECT id FROM department WHERE department_name = "${answer.departmentChoice}"));`
+            )
 
-  function employeeArray() {
+            start();
+        });
+
+    })
+
+}
+
+  //Update employee role
+  function roleUpdate() { 
+
     console.log("Updating an employee");
   
     var query =
@@ -310,16 +338,30 @@ function employeeAdd() {
           });
       });
   }
-  
-  
-  
 
-  
-  
+  //Delete employee
 
+function employeeDelete() {
 
+    inquirer.prompt([
+        {
+            name: "firstName",
+            type: "input",
+            message: "What is your Employee's First Name?"
+        },
+        {
+            name: "lastName",
+            type: "input",
+            message: "What is your Employee's Last Name?"
+        }
+    ]).then(function (answer) {
 
+        db.query("DELETE FROM employee WHERE first_name = ? and last_name = ?", [answer.firstName, answer.lastName], function (err) {
+            if (err) throw err;
 
+            console.log(`\n ${answer.firstName} ${answer.lastName} has been deleted from the database... \n`)
+            start();
+        })
+    });
+}
 
-
-    
