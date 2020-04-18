@@ -1,0 +1,33 @@
+{
+  "name": "mysql-employee-tracker",
+  "version": "1.0.0",
+  "description": "App for managing a company's employees using node, inquirer, and MySQL.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js",
+    "nodemon": "./node_modules/.bin/nodemon"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Antidetka/MySQL-Employee-Tracker.git"
+  },
+  "keywords": [
+    "test",
+    "node",
+    "index"
+  ],
+  "author": "Regina Musovirova",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Antidetka/MySQL-Employee-Tracker/issues"
+  },
+  "homepage": "https://github.com/Antidetka/MySQL-Employee-Tracker#readme",
+  "dependencies": {
+    "console.table": "^0.10.0",
+    "express": "^4.17.1",
+    "mysql": "^2.18.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  }
+}
