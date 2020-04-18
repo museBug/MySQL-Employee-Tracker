@@ -194,7 +194,7 @@ function employeeAdd() {
       });
   }
 
-  //Add department ((not working))
+  //Add department 
 
 function departmentAdd() {
     inquirer.prompt({
@@ -202,7 +202,7 @@ function departmentAdd() {
         name: "addDepartment",
         message: "What is the name of your department?"
     }).then(function (answer) {
-        db.query('INSERT INTO department SET ?', { department_name: answer.addDepartment }, function (err) {
+        db.query('INSERT INTO department SET ?', { name: answer.addDepartment }, function (err) {
             if (err) throw err;
         });
         console.log("\n Department added to database... \n");
@@ -233,7 +233,7 @@ function departmentAdd() {
                 type: "rawlist",
                 message: "Choose a department associated with this role",
                 choices: function () {
-                    let choiceArray = results[1].map(choice => choice.department_name);
+                    let choiceArray = results[1].map(choice => choice.name);
                     return choiceArray;
                 }
             }
