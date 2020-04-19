@@ -210,49 +210,50 @@ function departmentAdd() {
     });
 }
 
-  //Add role (not working)
+  //Add role 
 
-  function roleAdd() {
-
-    db.query("SELECT * FROM role", "SELECT * FROM department",function (err, result) {
-        if (err) throw err;
-
-        inquirer.prompt([
-            {
-                name: "roleTitle",
-                type: "input",
-                message: "Enter the title for this role"
-            },
-            {
-                name: "roleSalary",
-                type: "input",
-                message: "Enter the salary for this role"
-            },
-            {
-                name: "departmentChoice",
-                type: "rawlist",
-                message: "Choose a department associated with this role",
-                choices: function () {
-                    let choiceArray = results[1].map(choice => choice.name);
-                    return choiceArray;
-                }
-            }
-        ]).then(function (answer) {
-            db.query(
-                `INSERT INTO role(title, salary, department_id) 
-                VALUES
-                ("${answer.roleTitle}", "${answer.roleSalary}", 
-                (SELECT id FROM department WHERE department_name = "${answer.departmentChoice}"));`
-            )
-
-            start();
-        });
-
+  function roleAdd(){
+    let depCh = [];
+    let query = "SELECT * FROM department";
+    db.query(query, function(err, result){
+        
+        for(let i =0; i < result.length; i++){
+            depCh.push(result[i].name);
+        };
     })
+    inquirer.prompt([{
+        type: "input",
+        name: "role_name",
+        message: "Please add a new role name."
+    },{
+       type: "input",
+       name: "role_salary",
+       message: "Please enter salary." 
+    },{
+        type: "list",
+        name: "department_list",
+        message: "Please select department.",
+        choices: depCh
+    },
+]).then(function(answer){
+    let departmentID;
+    for(let i =0; i < depCh.length; i++){
+        if(depCh[i] === answer.department_list){
+            departmentID = i + 1
+        }
+    };
 
-}
+    let query = "INSERT INTO role(title, salary, department_id) VALUES(?, ?, ?)";
+    db.query(query, [answer.role_name, answer.role_salary, departmentID], function(err, res){
+        if (err) throw err;
+        console.log("Role has been added...");
+        start();
+    })
+})   
+};
 
   //Update employee role
+
   function roleUpdate() { 
 
     console.log("Updating an employee");
@@ -267,14 +268,14 @@ function departmentAdd() {
     JOIN employee m
       ON m.id = e.manager_id`
   
-    db.query(query, function (err, res) {
+    db.query(query, function (err, result) {
       if (err) throw err;
   
-      const employeeChoices = res.map(({ id, first_name, last_name }) => ({
+      const employeeChoices = result.map(({ id, first_name, last_name }) => ({
         value: id, name: `${first_name} ${last_name}`      
       }));
   
-      console.table(res);
+      console.table(result);
       console.log("employeeArray To Update!\n")
   
       roleArray(employeeChoices);
@@ -289,14 +290,14 @@ function departmentAdd() {
     FROM role r`
     let roleChoices;
   
-    db.query(query, function (err, res) {
+    db.query(query, function (err, result) {
       if (err) throw err;
   
-      roleChoices = res.map(({ id, title, salary }) => ({
+      roleChoices = result.map(({ id, title, salary }) => ({
         value: id, title: `${title}`, salary: `${salary}`      
       }));
   
-      console.table(res);
+      console.table(result);
       console.log("roleArray to Update!\n")
   
       promptEmployeeRole(employeeChoices, roleChoices);
@@ -328,10 +329,10 @@ function departmentAdd() {
           [ answer.roleId,  
             answer.employeeId
           ],
-          function (err, res) {
+          function (err, result) {
             if (err) throw err;
   
-            console.table(res);
+            console.table(result);
             console.log(res.affectedRows + "Updated successfully!");
   
             start();
@@ -339,7 +340,7 @@ function departmentAdd() {
       });
   }
 
-  //Delete employee
+//Delete employee
 
 function employeeDelete() {
 
