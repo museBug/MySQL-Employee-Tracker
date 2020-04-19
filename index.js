@@ -38,6 +38,8 @@ function start() {
             'Add roles',
             'Update employee role',
             'Delete employee',
+            'Delete department',
+            'Delete role',
             'exit'
         ]
     }
@@ -74,6 +76,14 @@ function start() {
 
         case 'Delete employee':
           employeeDelete();
+          break;
+
+        case 'Delete department':
+          depDelete();
+          break;
+
+        case 'Delete role':
+          roleDelete();
           break;
   
         case "exit":
@@ -255,10 +265,8 @@ function departmentAdd() {
   //Update employee role
 
   function roleUpdate() { 
-
     console.log("Updating an employee");
-  
-    var query =
+    let query =
       `SELECT e.id, e.first_name, e.last_name, r.title, d.name AS department, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager
     FROM employee e
     JOIN role r
@@ -343,7 +351,7 @@ function departmentAdd() {
 //Delete employee
 
 function employeeDelete() {
-
+  console.log("Deleting an employee");
     inquirer.prompt([
         {
             name: "firstName",
@@ -364,5 +372,47 @@ function employeeDelete() {
             start();
         })
     });
+}
+
+//Delete department
+
+function depDelete() {
+  console.log("Deleting department");
+  inquirer.prompt([
+      {
+          name: "name",
+          type: "input",
+          message: "What is name of the department?"
+      }
+  ]).then(function (answer) {
+
+      db.query("DELETE FROM department WHERE name = ?", [answer.name], function (err) {
+          if (err) throw err;
+
+          console.log(`\n ${answer.name} has been deleted from the database... \n`)
+          start();
+      })
+  });
+}
+
+//Delete role
+
+function roleDelete() {
+  console.log("Deleting role");
+  inquirer.prompt([
+      {
+          name: "title",
+          type: "input",
+          message: "What is title of the role?"
+      }
+  ]).then(function (answer) {
+
+      db.query("DELETE FROM role WHERE title = ?", [answer.title], function (err) {
+          if (err) throw err;
+
+          console.log(`\n ${answer.title} has been deleted from the database... \n`)
+          start();
+      })
+  });
 }
 
